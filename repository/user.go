@@ -2,28 +2,24 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/FianGumilar/e-wallet/interfaces"
 	"github.com/FianGumilar/e-wallet/models/entitty"
+	"gorm.io/gorm"
 )
 
 type repository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewUserRepository(con *sql.DB) interfaces.UserRepository {
+func NewUserRepository(con *gorm.DB) interfaces.UserRepository {
 	return &repository{db: con}
 }
 
 // FindByID implements interfaces.UserRepository.
 func (r repository) FindByID(ctx context.Context, id int64) (user entitty.User, err error) {
-	query := `SELECT * FROM users WHERE id = ?`
-
-	row := r.db.QueryRowContext(ctx, query, id)
-
-	err = row.Scan(&user.ID, &user.Username, &user.Password, &user.Phone)
-	if err != nil {
+	dataset := r.db.Where("id = ?", id).First(&user)
+	if dataset.Error != nil {
 		return user, nil
 	}
 	return
@@ -31,12 +27,8 @@ func (r repository) FindByID(ctx context.Context, id int64) (user entitty.User, 
 
 // FindByUsername implements interfaces.UserRepository.
 func (r repository) FindByUsername(ctx context.Context, username string) (user entitty.User, err error) {
-	query := `SELECT * FROM users WHERE username = ?`
-
-	row := r.db.QueryRowContext(ctx, query, username)
-
-	err = row.Scan(&user.ID, &user.Username, &user.Password, &user.Phone)
-	if err != nil {
+	dataset := r.db.Where("username = ?", username).First(&user)
+	if dataset.Error != nil {
 		return user, nil
 	}
 	return

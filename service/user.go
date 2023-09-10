@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/FianGumilar/e-wallet/interfaces"
 	"github.com/FianGumilar/e-wallet/models/dto"
@@ -28,29 +29,31 @@ func (s service) Authenticate(ctx context.Context, req dto.AuthReq) (res dto.Aut
 	// Check user by FindByUsername
 	user, err := s.userRepository.FindByUsername(ctx, req.Username)
 	if err != nil {
-		return dto.AuthRes{}, err
+		return dto.AuthRes{}, utils.ErrAuthFailed
 	}
 
 	// Check user exists
 	if user == (entitty.User{}) {
-		return dto.AuthRes{}, utils.ErrAuthFailed
+		return dto.AuthRes{}, err
 	}
 
 	// Compare hash & password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return dto.AuthRes{}, utils.ErrAuthFailed
+		return dto.AuthRes{}, err
 	}
 
 	// Generate auth token
 	token := utils.GenerateRandomString(32)
+	log.Printf("Generated Token: %s", token)
 
 	// Set token as a cache
 	userJson, _ := json.Marshal(user)
 	_ = s.cacheRepository.Set("user:"+token, userJson)
 
 	return dto.AuthRes{
-		Token: token,
+		UserID: user.ID,
+		Token:  token,
 	}, nil
 
 }

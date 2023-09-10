@@ -1,17 +1,18 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
 	"github.com/FianGumilar/e-wallet/config"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DbPG *sql.DB
+var DbPG *gorm.DB
 
-func GetDbPgConnection(conf *config.AppConfig) *sql.DB {
+func GetDbPgConnection(conf *config.AppConfig) *gorm.DB {
 	var err error
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -22,12 +23,7 @@ func GetDbPgConnection(conf *config.AppConfig) *sql.DB {
 		conf.Database.Name,
 	)
 
-	DbPG, err = sql.Open("postgres", dsn)
-	if err != nil {
-		log.Printf("failed connecting to database: %v", err)
-	}
-
-	err = DbPG.Ping()
+	DbPG, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Printf("failed connecting to database: %v", err)
 	}

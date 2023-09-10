@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	middlewares "github.com/FianGumilar/e-wallet/infrastructure/http/middlewares"
@@ -35,6 +36,7 @@ func (h handler) GenerateToken(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusUnauthorized, "Failed to authenticate")
 	}
+	log.Printf("Generated token: %s", token.Token)
 
 	return c.JSON(http.StatusOK, token)
 }
